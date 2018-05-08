@@ -257,9 +257,10 @@ function islandora_solr($query = NULL, $params = NULL) {
   drupal_add_css(drupal_get_path('module', 'islandora_solr') . '/css/islandora_solr.theme.css');
 
   // Url parameters.
-  if ($params === NULL) {
+  if ($params === NULL || !is_array($params)) {
     $params = $_GET;
   }
+
   // Get profiles.
   $primary_profiles = module_invoke_all('islandora_solr_primary_display');
   $secondary_profiles = module_invoke_all('islandora_solr_secondary_display');
@@ -280,17 +281,23 @@ function islandora_solr($query = NULL, $params = NULL) {
       }
     }
   }
+
   // Set primary display.
   // Check if display param is an valid, enabled profile; otherwise, show
   // default.
-  if (isset($params['display']) && in_array($params['display'], $enabled_profiles)) {
-    $islandora_solr_primary_display = $params['display'];
+  if (isset($params['display'])) {
+    if (in_array($params['display'], $enabled_profiles)) {
+      $islandora_solr_primary_display = $params['display'];
+    }
+    else {
+      // Unset invalid parameter.
+      unset($params['display']);
+    }
   }
-  else {
+  if (empty($islandora_solr_primary_display)) {
     $islandora_solr_primary_display = variable_get('islandora_solr_primary_display', 'default');
-    // Unset invalid parameter.
-    unset($params['display']);
   }
+
   $params['islandora_solr_search_navigation'] = variable_get('islandora_solr_search_navigation', FALSE);
 
   // !!! Set the global variable. !!!
